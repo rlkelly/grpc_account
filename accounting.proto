@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package accounting;
+
+service AccountingService {
+    rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
+    rpc GetBalance(GetBalanceRequest) returns (GetBalanceResponse);
+    rpc Transfer(TransferRequest) returns (TransferResponse);
+}
+
+// creates new account; the account_id must be unique
+message CreateAccountRequest {
+  fixed64 req_id = 1;
+  fixed32 account_id = 2;
+}
+
+message CreateAccountResponse {
+  fixed64 req_id = 1;
+  fixed32 account_id = 2;
+}
+
+message GetBalanceRequest {
+  fixed64 req_id = 1;
+  fixed32 account_id = 2;
+}
+
+message GetBalanceResponse {
+  fixed64 req_id = 1;
+  fixed32 account_id = 2;
+  sfixed64 balance = 3;
+}
+
+message TransferComponent {
+  fixed32 account_id = 1;
+  sfixed64 money_delta = 2;
+}
+
+// within one transfer sum of all money deltas must be zero
+message TransferRequest {
+  fixed64 req_id = 1;
+  repeated TransferComponent components = 2;
+}
+
+message TransferResponse {
+  fixed64 req_id = 1;
+}
