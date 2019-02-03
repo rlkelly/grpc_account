@@ -18,24 +18,10 @@ use crate::proto::accounting_grpc::AccountingService;
 pub type PostgresPool = Pool<PostgresConnectionManager>;
 pub type PostgresConnection = PooledConnection<PostgresConnectionManager>;
 
-pub trait DataStore {
-    pub fn create_account(&self, account: u32, req_id: u64) -> Result<u64, ()> {}
-    pub fn get_account_balance(account: i64) -> Result<i64, ()> {}
-    pub fn execute_transfers(transfers: &[TransferComponent], req_id: i64) -> Result<(), ()> {}
-}
-
 #[derive(Clone)]
-pub struct GrpcAccountingService<T>
-where
-    T: 'static + DataStore + Send + Sync,
-{
-    store: Arc<T>,
+pub struct GrpcAccountingService {
+    pool: PostgresPool,
 }
-
-// #[derive(Clone)]
-// pub struct GrpcAccountingService {
-//     pool: PostgresPool,
-// }
 
 impl GrpcAccountingService {
     pub fn new(conn_string: &str) -> GrpcAccountingService {
@@ -63,7 +49,7 @@ impl AccountingService for GrpcAccountingService {
         reply.set_req_id(req_id);
         reply.set_account_id(account_id);
 
-        match self.store.create_account(self.get_conn(), account_id, req_id) {
+        match create_account(self.get_conn(), account_id, req_id) {
             Ok(_) => {
                 let f = sink
                     .success(reply)
