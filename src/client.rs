@@ -1,5 +1,7 @@
-use std::sync::Arc;
+use std::sync::{Arc, Barrier};
 use std::time::Instant;
+use threadpool::ThreadPool;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use grpcio::{ChannelBuilder, EnvBuilder};
 
@@ -27,18 +29,33 @@ fn main() {
     let env = Arc::new(EnvBuilder::new().build());
     let ch = ChannelBuilder::new(env).connect("localhost:3000");
     let client = AccountingServiceClient::new(ch);
+
     let mut req_id = 0;
 
-    let req = make_create_request(18446744073709551600, 2005);
-    let reply = client.create_account(&req);
-    assert!(reply.is_ok());
+    // let req = make_create_request(18446744073709551600, 2005);
+    // let reply = client.create_account(&req);
+    // assert!(reply.is_ok());
 
-    for i in 1..2000 {
-        let req = make_create_request(req_id, i);
-        req_id += 1;
-        let reply = client.create_account(&req);
-        assert!(reply.is_ok());
+    let pool = ThreadPool::new(20);
+    let barrier = Arc::new(Barrier::new(20));
+    let an_atomic = Arc::new(AtomicUsize::new(0));
+
+    for i in 1..20 {
+      let barrier = barrier.clone();
+      let an_atomic = an_atomic.clone();
+      pool.execute(move|| {
+          let env = Arc::new(EnvBuilder::new().build());
+          let ch = ChannelBuilder::new(env).connect("localhost:3000");
+          let client = AccountingServiceClient::new(ch);
+          an_atomic.fetch_add(1, Ordering::Relaxed);
+          let req = make_create_request(req_id, i);
+          // req_id += 1;
+          let reply = client.create_account(&req);
+          // assert!(reply.is_ok());
+          barrier.wait();
+      });
     }
+    barrier.wait();
 
     let req = make_create_request(req_id, 10);
     req_id += 1;
@@ -109,6 +126,7 @@ fn main() {
     let reply = client.transfer(&req);
     assert!(reply.is_ok());
 
+    println!("{:?}", an_atomic);
     let elapsed = start.elapsed();
     println!("Elapsed: {} ms",
              (elapsed.as_secs() * 1_000) + (elapsed.subsec_nanos() / 1_000_000) as u64);

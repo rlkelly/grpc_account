@@ -5,6 +5,7 @@ extern crate r2d2_postgres;
 use postgres::error::T_R_SERIALIZATION_FAILURE;
 use postgres::transaction::Transaction;
 use postgres::{Connection, Error};
+use postgres::transaction::{Config, IsolationLevel};
 use r2d2::{Pool, PooledConnection};
 use r2d2_postgres::{PostgresConnectionManager, TlsMode};
 
@@ -15,6 +16,7 @@ pub type PostgresPool = Pool<PostgresConnectionManager>;
 pub type PostgresConnection = PooledConnection<PostgresConnectionManager>;
 pub type PostgresResult<T> = Result<T, ()>;
 
+// This will work with both Postgres and CockroachDb
 #[derive(Clone)]
 pub struct PostgresDataStore {
     pool: PostgresPool,
@@ -65,7 +67,12 @@ fn execute_txn<T, F>(conn: &Connection, op: F) -> Result<T, Error>
 where
     F: Fn(&Transaction) -> Result<T, Error>,
 {
+    // Use serializable isolation to protect against concurrent writes
     let txn = conn.transaction()?;
+    let mut cfg = Config::new();
+    cfg.isolation_level(IsolationLevel::Serializable);
+    txn.set_config(&cfg).unwrap();
+
     loop {
         let sp = txn.savepoint("cockroach_restart")?;
         match op(&sp).and_then(|t| sp.commit().map(|_| t)) {

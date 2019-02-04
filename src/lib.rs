@@ -143,7 +143,7 @@ where
                     sink,
                     ctx,
                     RpcStatusCode::Aborted,
-                    "Transaction Error.  Possibly a User Had Insufficient Funds",
+                    "Transaction Error.  Possibly Due To Insufficient Funds",
                 ),
             }
         }
