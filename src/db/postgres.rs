@@ -1,15 +1,69 @@
 extern crate postgres;
+extern crate r2d2;
+extern crate r2d2_postgres;
 
 use postgres::error::T_R_SERIALIZATION_FAILURE;
 use postgres::transaction::Transaction;
-use postgres::{Connection, Result};
+use postgres::{Connection, Error};
+use r2d2::{Pool, PooledConnection};
+use r2d2_postgres::{PostgresConnectionManager, TlsMode};
 
 use crate::proto::accounting::TransferComponent;
-use crate::PostgresConnection;
+use crate::DataStore;
 
-fn execute_txn<T, F>(conn: &Connection, op: F) -> Result<T>
+pub type PostgresPool = Pool<PostgresConnectionManager>;
+pub type PostgresConnection = PooledConnection<PostgresConnectionManager>;
+pub type PostgresResult<T> = Result<T, ()>;
+
+#[derive(Clone)]
+pub struct PostgresDataStore {
+    pool: PostgresPool,
+}
+
+impl PostgresDataStore {
+    pub fn new(conn_string: &str) -> PostgresDataStore {
+        let manager = PostgresConnectionManager::new(conn_string, TlsMode::None).unwrap();
+        let pool = Pool::new(manager).unwrap();
+        PostgresDataStore { pool }
+    }
+    fn get_conn(&mut self) -> PostgresConnection {
+        self.pool.get().unwrap()
+    }
+}
+
+impl DataStore for PostgresDataStore {
+    fn create_account(&mut self, account: u32, req_id: u64) -> PostgresResult<u64> {
+        let res = create_account(self.get_conn(), account, req_id);
+        match res {
+            Ok(val) => Ok(val),
+            _ => Err(()),
+        }
+    }
+
+    fn get_account_balance(&mut self, account: i64) -> PostgresResult<i64> {
+        let res = get_account_balance(self.get_conn(), account);
+        match res {
+            Ok(val) => Ok(val),
+            _ => Err(()),
+        }
+    }
+
+    fn execute_transfers(
+        &mut self,
+        transfers: &[TransferComponent],
+        req_id: i64,
+    ) -> PostgresResult<()> {
+        let res = execute_transfers(self.get_conn(), transfers, req_id);
+        match res {
+            Ok(_) => Ok(()),
+            _ => Err(()),
+        }
+    }
+}
+
+fn execute_txn<T, F>(conn: &Connection, op: F) -> Result<T, Error>
 where
-    F: Fn(&Transaction) -> Result<T>,
+    F: Fn(&Transaction) -> Result<T, Error>,
 {
     let txn = conn.transaction()?;
     loop {
@@ -26,15 +80,16 @@ where
     .and_then(|t| txn.commit().map(|_| t))
 }
 
-pub fn create_account(conn: PostgresConnection, account: u32, req_id: u64) -> Result<u64> {
+fn create_account(conn: PostgresConnection, account: u32, req_id: u64) -> Result<u64, Error> {
     conn.execute(
         "INSERT INTO accounts (balance, id, creation_request) VALUES ($1, $2, $3)",
         &[&100i64, &(account as i64), &(req_id as i64)],
     )
 }
 
-pub fn get_account_balance(conn: PostgresConnection, account: i64) -> Result<i64> {
+fn get_account_balance(conn: PostgresConnection, account: i64) -> Result<i64, Error> {
     let balance = conn.query("SELECT balance FROM accounts WHERE id=$1", &[&account])?;
+    // If no rows are returned, need to inform user
     if balance.len() != 1 {
         Ok(-1)
     } else {
@@ -42,16 +97,19 @@ pub fn get_account_balance(conn: PostgresConnection, account: i64) -> Result<i64
     }
 }
 
-pub fn execute_transfers(
+fn execute_transfers(
     conn: PostgresConnection,
     transfers: &[TransferComponent],
     req_id: i64,
-) -> Result<()> {
+) -> Result<(), Error> {
     execute_txn(&conn, |txn| transfer_funds(txn, transfers, req_id))
 }
 
-fn transfer_funds(txn: &Transaction, transfers: &[TransferComponent], req_id: i64) -> Result<()> {
-    // Perform the transfers.
+fn transfer_funds(
+    txn: &Transaction,
+    transfers: &[TransferComponent],
+    req_id: i64,
+) -> Result<(), Error> {
     for transfer in transfers {
         let delta: i64 = transfer.get_money_delta();
         let account = transfer.get_account_id() as i64;
@@ -77,10 +135,4 @@ fn transfer_funds(txn: &Transaction, transfers: &[TransferComponent], req_id: i6
 //     let mut ssl = OpenSsl::new().unwrap();
 //     *ssl.connector_mut() = connector_builder.build();
 //     ssl
-// }
-
-// fn main() {
-//     let tls_mode = TlsMode::Require(&ssl_config());
-//     let conn = Connection::connect("postgresql://accountant@localhost:26257/bank", tls_mode)
-//         .unwrap();
 // }

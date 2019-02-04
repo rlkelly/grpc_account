@@ -1,6 +1,3 @@
-extern crate r2d2;
-extern crate r2d2_postgres;
-
 use std::io::Read;
 use std::sync::Arc;
 use std::{io, thread};
@@ -11,11 +8,13 @@ use grpcio::{Environment, ServerBuilder};
 
 use accountant::proto::accounting_grpc;
 use accountant::GrpcAccountingService;
+use accountant::db::PostgresDataStore;
 
 fn main() {
     let env = Arc::new(Environment::new(4));
     let service = accounting_grpc::create_accounting_service(
-        GrpcAccountingService::new("postgresql://accountant@localhost:26257/bank")
+        GrpcAccountingService::new(
+            PostgresDataStore::new("postgresql://accountant@localhost:26257/bank"))
     );
 
     let mut server = ServerBuilder::new(env)

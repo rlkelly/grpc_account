@@ -3,40 +3,55 @@ pub mod proto;
 
 use futures::Future;
 use grpcio::{RpcContext, RpcStatus, RpcStatusCode, UnarySink};
-use r2d2::{Pool, PooledConnection};
-use r2d2_postgres::{PostgresConnectionManager, TlsMode};
 
-use crate::db::{
-    create_account, execute_transfers, get_account_balance,
-};
+use crate::proto::accounting::TransferComponent;
 use crate::proto::accounting::{
     CreateAccountRequest, CreateAccountResponse, GetBalanceRequest, GetBalanceResponse,
     TransferRequest, TransferResponse,
 };
 use crate::proto::accounting_grpc::AccountingService;
 
-pub type PostgresPool = Pool<PostgresConnectionManager>;
-pub type PostgresConnection = PooledConnection<PostgresConnectionManager>;
+pub trait DataStore {
+    fn create_account(&mut self, account: u32, req_id: u64) -> Result<u64, ()>;
+    fn get_account_balance(&mut self, account: i64) -> Result<i64, ()>;
+    fn execute_transfers(&mut self, transfers: &[TransferComponent], req_id: i64)
+        -> Result<(), ()>;
+}
 
 #[derive(Clone)]
-pub struct GrpcAccountingService {
-    pool: PostgresPool,
+pub struct GrpcAccountingService<T>
+where
+    T: 'static + DataStore + Send + Sync,
+{
+    store: T,
 }
 
-impl GrpcAccountingService {
-    pub fn new(conn_string: &str) -> GrpcAccountingService {
-        let manager = PostgresConnectionManager::new(conn_string, TlsMode::None).unwrap();
-        let pool = Pool::new(manager).unwrap();
-
-        GrpcAccountingService { pool }
+impl<T> GrpcAccountingService<T>
+where
+    T: 'static + DataStore + Send + Sync,
+{
+    pub fn new(store: T) -> GrpcAccountingService<T> {
+        GrpcAccountingService { store }
     }
 
-    pub fn get_conn(&mut self) -> PostgresConnection {
-        self.pool.get().unwrap()
+    fn send_error<U>(
+        &self,
+        sink: UnarySink<U>,
+        ctx: RpcContext,
+        status_code: RpcStatusCode,
+        arg_string: &str,
+    ) {
+        let f = sink
+            .fail(RpcStatus::new(status_code, Some(arg_string.to_string())))
+            .map_err(move |e| println!("failed to reply: {:?}", e));
+        ctx.spawn(f);
     }
 }
 
-impl AccountingService for GrpcAccountingService {
+impl<T> AccountingService for GrpcAccountingService<T>
+where
+    T: 'static + DataStore + Send + Sync,
+{
     fn create_account(
         &mut self,
         ctx: RpcContext,
@@ -49,22 +64,19 @@ impl AccountingService for GrpcAccountingService {
         reply.set_req_id(req_id);
         reply.set_account_id(account_id);
 
-        match create_account(self.get_conn(), account_id, req_id) {
+        match self.store.create_account(account_id, req_id) {
             Ok(_) => {
                 let f = sink
                     .success(reply)
                     .map_err(move |e| println!("failed to reply {:?}: {:?}", req, e));
                 ctx.spawn(f);
             }
-            Err(_) => {
-                let f = sink
-                    .fail(RpcStatus::new(
-                        RpcStatusCode::InvalidArgument,
-                        Some(String::from("Account Already Exists")),
-                    ))
-                    .map_err(move |e| println!("failed to reply {:?}: {:?}", req, e));
-                ctx.spawn(f);
-            }
+            Err(_) => self.send_error(
+                sink,
+                ctx,
+                RpcStatusCode::InvalidArgument,
+                "Account Already Exists",
+            ),
         }
     }
 
@@ -77,16 +89,13 @@ impl AccountingService for GrpcAccountingService {
         let req_id = req.get_req_id();
         let account_id = req.get_account_id();
 
-        match get_account_balance(self.get_conn(), account_id as i64) {
-            Ok(-1) => {
-                let f = sink
-                    .fail(RpcStatus::new(
-                        RpcStatusCode::InvalidArgument,
-                        Some(String::from("Failed To Find Account")),
-                    ))
-                    .map_err(move |e| println!("failed to reply {:?}: {:?}", req, e));
-                ctx.spawn(f);
-            }
+        match self.store.get_account_balance(account_id as i64) {
+            Ok(-1) => self.send_error(
+                sink,
+                ctx,
+                RpcStatusCode::NotFound,
+                "Resource Not Found",
+            ),
             Ok(balance) => {
                 let mut reply = GetBalanceResponse::new();
                 reply.set_req_id(req_id);
@@ -97,15 +106,7 @@ impl AccountingService for GrpcAccountingService {
                     .map_err(move |e| println!("failed to reply {:?}: {:?}", req, e));
                 ctx.spawn(f);
             }
-            Err(_) => {
-                let f = sink
-                    .fail(RpcStatus::new(
-                        RpcStatusCode::InvalidArgument,
-                        Some(String::from("Server Error")),
-                    ))
-                    .map_err(move |e| println!("failed to reply {:?}: {:?}", req, e));
-                ctx.spawn(f);
-            }
+            Err(_) => self.send_error(sink, ctx, RpcStatusCode::Unknown, "Server Error"),
         };
     }
 
@@ -122,15 +123,14 @@ impl AccountingService for GrpcAccountingService {
             .fold(0, |sum, i| sum + i.get_money_delta());
 
         if verify_total != 0 {
-            let f = sink
-                .fail(RpcStatus::new(
-                    RpcStatusCode::InvalidArgument,
-                    Some(String::from("Sum of All Money Deltas Must Be Zero")),
-                ))
-                .map_err(move |e| println!("failed to reply {:?}: {:?}", req, e));
-            ctx.spawn(f);
+            self.send_error(
+                sink,
+                ctx,
+                RpcStatusCode::FailedPrecondition,
+                "Sum of All Money Deltas Must Be Zero",
+            );
         } else {
-            match execute_transfers(self.get_conn(), &components, req_id as i64) {
+            match self.store.execute_transfers(&components, req_id as i64) {
                 Ok(_) => {
                     let mut reply = TransferResponse::new();
                     reply.set_req_id(req_id);
@@ -139,15 +139,12 @@ impl AccountingService for GrpcAccountingService {
                         .map_err(move |e| println!("failed to reply {:?}: {:?}", req, e));
                     ctx.spawn(f);
                 }
-                Err(_) => {
-                    let f = sink
-                        .fail(RpcStatus::new(
-                            RpcStatusCode::InvalidArgument,
-                            Some(String::from("At Least One Account Had Invalid Balance")),
-                        ))
-                        .map_err(move |e| println!("failed to reply {:?}: {:?}", req, e));
-                    ctx.spawn(f);
-                }
+                Err(_) => self.send_error(
+                    sink,
+                    ctx,
+                    RpcStatusCode::Aborted,
+                    "Transaction Error.  Possibly a User Had Insufficient Funds",
+                ),
             }
         }
     }
