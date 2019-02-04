@@ -9,6 +9,7 @@ dependencies = [
  "protoc-grpcio 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.8.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2_postgres 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "threadpool 1.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -267,6 +268,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "memchr"
 version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.48 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "num_cpus"
+version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.48 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -661,6 +670,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "threadpool"
+version = "1.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "num_cpus 1.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "typenum"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -760,6 +777,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum matches 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "7ffc5c5338469d4d3ea17d269fa8ea3512ad247247c30bd2df69e68309ed0a08"
 "checksum md5 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)" = "79c56d6a0b07f9e19282511c83fc5b086364cbae4ba8c7d5f190c3d9b0425a48"
 "checksum memchr 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "148fab2e51b4f1cfc66da2a7c32981d1d3c083a803978268bb11fe4b86925e7a"
+"checksum num_cpus 1.9.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5a69d464bdc213aaaff628444e99578ede64e9c854025aa43b9796530afa9238"
 "checksum phf 0.7.24 (registry+https://github.com/rust-lang/crates.io-index)" = "b3da44b85f8e8dfaec21adae67f95d93244b2ecf6ad2a692320598dcc8e6dd18"
 "checksum phf_shared 0.7.24 (registry+https://github.com/rust-lang/crates.io-index)" = "234f71a15de2288bcb7e3b6515828d22af7ec8598ee6d24c3b526fa0a80b67a0"
 "checksum pkg-config 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)" = "676e8eb2b1b4c9043511a9b7bea0915320d7e502b0a079fb03f9635a5252b18c"
@@ -803,6 +821,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum syn 0.15.26 (registry+https://github.com/rust-lang/crates.io-index)" = "f92e629aa1d9c827b2bb8297046c1ccffc57c99b947a680d3ccff1f136a3bee9"
 "checksum synstructure 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)" = "73687139bf99285483c96ac0add482c3776528beac1d97d444f6e91f203a2015"
 "checksum tempfile 3.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "7e91405c14320e5c79b3d148e1c86f40749a36e490642202a31689cb1a3452b2"
+"checksum threadpool 1.7.1 (registry+https://github.com/rust-lang/crates.io-index)" = "e2f0c90a5f3459330ac8bc0d2f879c693bb7a2f59689c1083fc4ef83834da865"
 "checksum typenum 1.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "612d636f949607bdf9b123b4a6f6d966dedf3ff669f7f045890d3a4a73948169"
 "checksum unicode-bidi 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "49f2bd0c6468a8230e1db229cff8029217cf623c767ea5d60bfbd42729ea54d5"
 "checksum unicode-normalization 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "141339a08b982d942be2ca06ff8b076563cbe223d1befd5450716790d44e2426"
