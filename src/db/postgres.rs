@@ -2,6 +2,8 @@ extern crate postgres;
 extern crate r2d2;
 extern crate r2d2_postgres;
 
+use std::io;
+
 use postgres::error::T_R_SERIALIZATION_FAILURE;
 use postgres::transaction::Transaction;
 use postgres::{Connection, Error};
@@ -24,20 +26,47 @@ pub struct PostgresDataStore {
 
 impl PostgresDataStore {
     pub fn new(conn_string: &str) -> PostgresDataStore {
-        let manager = PostgresConnectionManager::new(conn_string, TlsMode::None).unwrap();
-        let pool = Pool::new(manager).unwrap();
+        let manager = PostgresConnectionManager::new(conn_string, TlsMode::None)
+            .expect("Database Connection Error");
+        let pool = Pool::new(manager)
+            .expect("ThreadPool Error");
         PostgresDataStore { pool }
     }
+
+    pub fn reset_db_state(&mut self) -> PostgresResult<()> {
+        self.get_conn().execute("DROP TABLE IF EXISTS accounts;", &[]).unwrap();
+        self.get_conn().execute("CREATE TABLE accounts (
+            id INT4 PRIMARY KEY,
+            balance BIGINT,
+            created_at TIMESTAMP DEFAULT now(),
+            creation_request BIGINT,
+            CONSTRAINT balance_check CHECK (balance >= 0)
+        );", &[]).unwrap();
+        self.get_conn().execute("GRANT ALL ON TABLE accounts TO accountant;", &[]).unwrap();
+
+        self.get_conn().execute("DROP TABLE IF EXISTS transactions;", &[]).unwrap();
+        self.get_conn().execute("CREATE TABLE transactions (
+            id INT PRIMARY KEY DEFAULT unique_rowid(),
+            transaction_index INT4,
+            req_id BIGINT,
+            account_id INT4,
+            amount INT,
+            created_at TIMESTAMP DEFAULT now()
+        );", &[]).unwrap();
+        self.get_conn().execute("GRANT ALL ON TABLE transactions TO accountant;", &[]).unwrap();
+        Ok(())
+    }
+
     fn get_conn(&mut self) -> PostgresConnection {
         self.pool.get().unwrap()
     }
 }
 
 impl DataStore for PostgresDataStore {
-    fn create_account(&mut self, account: u32, req_id: u64) -> PostgresResult<u64> {
-        let res = create_account(self.get_conn(), account, req_id);
+    fn create_account(&mut self, account: u32, req_id: u64, balance: i64) -> PostgresResult<u64> {
+        let res = create_account(self.get_conn(), account, req_id, balance);
         match res {
-            Ok(val) => Ok(val),
+            Ok(1) => Ok(1),
             _ => Err(()),
         }
     }
@@ -60,6 +89,10 @@ impl DataStore for PostgresDataStore {
             Ok(_) => Ok(()),
             _ => Err(()),
         }
+    }
+
+    fn reset(&mut self) -> PostgresResult<()> {
+        self.reset_db_state()
     }
 }
 
@@ -87,10 +120,10 @@ where
     .and_then(|t| txn.commit().map(|_| t))
 }
 
-fn create_account(conn: PostgresConnection, account: u32, req_id: u64) -> Result<u64, Error> {
+fn create_account(conn: PostgresConnection, account: u32, req_id: u64, balance: i64) -> Result<u64, Error> {
     conn.execute(
         "INSERT INTO accounts (balance, id, creation_request) VALUES ($1, $2, $3)",
-        &[&100i64, &(account as i64), &(req_id as i64)],
+        &[&balance, &(account as i64), &(req_id as i64)],
     )
 }
 
@@ -117,29 +150,23 @@ fn transfer_funds(
     transfers: &[TransferComponent],
     req_id: i64,
 ) -> Result<(), Error> {
-    for transfer in transfers {
+    for (i, transfer) in transfers.iter().enumerate() {
         let delta: i64 = transfer.get_money_delta();
         let account = transfer.get_account_id() as i64;
-        txn.execute(
+        let res = txn.execute(
             "UPDATE accounts SET balance = balance + $1 WHERE id = $2",
             &[&delta, &account],
         )?;
-        txn.execute(
-            "INSERT INTO transactions (req_id, account_id, amount) VALUES ($1, $2, $3)",
-            &[&req_id, &account, &delta],
+        if res == 0 {
+            return Err(Error::from(io::Error::from(io::ErrorKind::NotFound)))
+        }
+        let res = txn.execute(
+            "INSERT INTO transactions (req_id, account_id, amount, transaction_index) VALUES ($1, $2, $3, $4)",
+            &[&req_id, &account, &delta, &(i as i64)],
         )?;
+        if res == 0 {
+            return Err(Error::from(io::Error::from(io::ErrorKind::NotFound)))
+        }
     }
     Ok(())
 }
-
-// fn ssl_config() -> OpenSsl {
-//     // Warning! This API will be changing in the next version of these crates.
-//     let mut connector_builder = SslConnectorBuilder::new(SslMethod::tls()).unwrap();
-//     connector_builder.set_ca_file("certs/ca.crt").unwrap();
-//     connector_builder.set_certificate_chain_file("certs/client.accountant.crt").unwrap();
-//     connector_builder.set_private_key_file("certs/client.accountant.key", X509_FILETYPE_PEM).unwrap();
-//
-//     let mut ssl = OpenSsl::new().unwrap();
-//     *ssl.connector_mut() = connector_builder.build();
-//     ssl
-// }

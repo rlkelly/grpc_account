@@ -6,12 +6,17 @@ service AccountingService {
     rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
     rpc GetBalance(GetBalanceRequest) returns (GetBalanceResponse);
     rpc Transfer(TransferRequest) returns (TransferResponse);
+    rpc Reset(ResetRequest) returns (ResetResponse);
 }
+
+message ResetRequest {}
+message ResetResponse {}
 
 // creates new account; the account_id must be unique
 message CreateAccountRequest {
   fixed64 req_id = 1;
   fixed32 account_id = 2;
+  sfixed64 balance = 3;
 }
 
 message CreateAccountResponse {

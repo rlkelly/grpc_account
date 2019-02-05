@@ -1,3 +1,5 @@
 /target
 src/certs
 **/*.rs.bk
+
+src/cockroach-data/
