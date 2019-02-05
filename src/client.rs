@@ -93,6 +93,7 @@ impl AccountTestingClient {
 
 #[cfg(test)]
 mod tests {
+    use rayon::prelude::*;
     use super::*;
 
     #[test]
@@ -184,15 +185,11 @@ mod tests {
         assert!(reply.is_ok());
 
         let transfers = client.create_test_transfers();
-        let pool = ThreadPool::new(4);
-        for transfer in transfers {
+        transfers.into_par_iter().for_each(|transfer| {
             let client = client.clone();
-            pool.execute(move || {
-                let reply = client.transfer(&transfer);
-                assert!(reply.is_ok());
-            });
-        }
-        pool.join();
+            let reply = client.transfer(&transfer);
+            assert!(reply.is_ok());
+        });
 
         let reply = client.get_balance(1).expect("failed to get balance for large donor");
         assert_eq!(reply.get_balance(), 4_000);

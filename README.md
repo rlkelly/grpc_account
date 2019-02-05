@@ -8,6 +8,7 @@
   4) futures: frust crate for creating promises
   5) r2d2, r2d2_postgres: rust crates for Connection Pools for Postgres
   6) threadpool: async testing
+  7) rayon: async testing
 
   ## Database
   - Postgres or CockroachDb.  I chose CockroachDb because of its distribution and high availability, as well as its default isolation for transactions is Serialization, which fits this problem nicely.
