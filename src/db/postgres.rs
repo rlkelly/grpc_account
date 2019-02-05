@@ -71,7 +71,7 @@ impl DataStore for PostgresDataStore {
         }
     }
 
-    fn get_account_balance(&mut self, account: i64) -> PostgresResult<i64> {
+    fn get_account_balance(&mut self, account: u32) -> PostgresResult<i64> {
         let res = get_account_balance(self.get_conn(), account);
         match res {
             Ok(val) => Ok(val),
@@ -127,8 +127,8 @@ fn create_account(conn: PostgresConnection, account: u32, req_id: u64, balance: 
     )
 }
 
-fn get_account_balance(conn: PostgresConnection, account: i64) -> Result<i64, Error> {
-    let balance = conn.query("SELECT balance FROM accounts WHERE id=$1", &[&account])?;
+fn get_account_balance(conn: PostgresConnection, account: u32) -> Result<i64, Error> {
+    let balance = conn.query("SELECT balance FROM accounts WHERE id=$1", &[&(account as i64)])?;
     // If no rows are returned, need to inform user
     if balance.len() != 1 {
         Ok(-1)

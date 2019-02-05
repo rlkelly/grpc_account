@@ -19,3 +19,13 @@ $ cockroach start --insecure --listen-addr=localhost
 $ cockroach sql --insecure < sql/database.sql
 $ cargo run server
 ```
+
+## Tests
+   Be sure to run single threaded as they rely on the same tables.
+``` bash
+$ RUST_TEST_THREADS=1 cargo test
+```
+
+## Todo
+   - Improve Multithreaded tests.
+   - Benchmarking

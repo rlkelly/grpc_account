@@ -13,7 +13,7 @@ use crate::proto::accounting_grpc::AccountingService;
 
 pub trait DataStore {
     fn create_account(&mut self, account: u32, req_id: u64, balance: i64) -> Result<u64, ()>;
-    fn get_account_balance(&mut self, account: i64) -> Result<i64, ()>;
+    fn get_account_balance(&mut self, account: u32) -> Result<i64, ()>;
     fn execute_transfers(&mut self, transfers: &[TransferComponent], req_id: i64)
         -> Result<(), ()>;
     fn reset(&mut self) -> Result<(), ()>;
@@ -91,7 +91,7 @@ where
         let req_id = req.get_req_id();
         let account_id = req.get_account_id();
 
-        match self.store.get_account_balance(account_id as i64) {
+        match self.store.get_account_balance(account_id) {
             Ok(-1) => self.send_error(
                 sink,
                 ctx,
