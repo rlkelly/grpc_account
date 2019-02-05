@@ -22,10 +22,251 @@ use protobuf::Message as Message_imported_for_functions;
 use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
 
 #[derive(PartialEq,Clone,Default)]
+pub struct ResetRequest {
+    // special fields
+    pub unknown_fields: ::protobuf::UnknownFields,
+    pub cached_size: ::protobuf::CachedSize,
+}
+
+impl ResetRequest {
+    pub fn new() -> ResetRequest {
+        ::std::default::Default::default()
+    }
+}
+
+impl ::protobuf::Message for ResetRequest {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        Self::descriptor_static()
+    }
+
+    fn new() -> ResetRequest {
+        ResetRequest::new()
+    }
+
+    fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let fields = ::std::vec::Vec::new();
+                ::protobuf::reflect::MessageDescriptor::new::<ResetRequest>(
+                    "ResetRequest",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+
+    fn default_instance() -> &'static ResetRequest {
+        static mut instance: ::protobuf::lazy::Lazy<ResetRequest> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ResetRequest,
+        };
+        unsafe {
+            instance.get(ResetRequest::new)
+        }
+    }
+}
+
+impl ::protobuf::Clear for ResetRequest {
+    fn clear(&mut self) {
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for ResetRequest {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for ResetRequest {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
+pub struct ResetResponse {
+    // special fields
+    pub unknown_fields: ::protobuf::UnknownFields,
+    pub cached_size: ::protobuf::CachedSize,
+}
+
+impl ResetResponse {
+    pub fn new() -> ResetResponse {
+        ::std::default::Default::default()
+    }
+}
+
+impl ::protobuf::Message for ResetResponse {
+    fn is_initialized(&self) -> bool {
+        true
+    }
+
+    fn merge_from(&mut self, is: &mut ::protobuf::CodedInputStream) -> ::protobuf::ProtobufResult<()> {
+        while !is.eof()? {
+            let (field_number, wire_type) = is.read_tag_unpack()?;
+            match field_number {
+                _ => {
+                    ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
+                },
+            };
+        }
+        ::std::result::Result::Ok(())
+    }
+
+    // Compute sizes of nested messages
+    #[allow(unused_variables)]
+    fn compute_size(&self) -> u32 {
+        let mut my_size = 0;
+        my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
+        self.cached_size.set(my_size);
+        my_size
+    }
+
+    fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
+        os.write_unknown_fields(self.get_unknown_fields())?;
+        ::std::result::Result::Ok(())
+    }
+
+    fn get_cached_size(&self) -> u32 {
+        self.cached_size.get()
+    }
+
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
+        &self.unknown_fields
+    }
+
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
+        &mut self.unknown_fields
+    }
+
+    fn as_any(&self) -> &::std::any::Any {
+        self as &::std::any::Any
+    }
+    fn as_any_mut(&mut self) -> &mut ::std::any::Any {
+        self as &mut ::std::any::Any
+    }
+    fn into_any(self: Box<Self>) -> ::std::boxed::Box<::std::any::Any> {
+        self
+    }
+
+    fn descriptor(&self) -> &'static ::protobuf::reflect::MessageDescriptor {
+        Self::descriptor_static()
+    }
+
+    fn new() -> ResetResponse {
+        ResetResponse::new()
+    }
+
+    fn descriptor_static() -> &'static ::protobuf::reflect::MessageDescriptor {
+        static mut descriptor: ::protobuf::lazy::Lazy<::protobuf::reflect::MessageDescriptor> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ::protobuf::reflect::MessageDescriptor,
+        };
+        unsafe {
+            descriptor.get(|| {
+                let fields = ::std::vec::Vec::new();
+                ::protobuf::reflect::MessageDescriptor::new::<ResetResponse>(
+                    "ResetResponse",
+                    fields,
+                    file_descriptor_proto()
+                )
+            })
+        }
+    }
+
+    fn default_instance() -> &'static ResetResponse {
+        static mut instance: ::protobuf::lazy::Lazy<ResetResponse> = ::protobuf::lazy::Lazy {
+            lock: ::protobuf::lazy::ONCE_INIT,
+            ptr: 0 as *const ResetResponse,
+        };
+        unsafe {
+            instance.get(ResetResponse::new)
+        }
+    }
+}
+
+impl ::protobuf::Clear for ResetResponse {
+    fn clear(&mut self) {
+        self.unknown_fields.clear();
+    }
+}
+
+impl ::std::fmt::Debug for ResetResponse {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        ::protobuf::text_format::fmt(self, f)
+    }
+}
+
+impl ::protobuf::reflect::ProtobufValue for ResetResponse {
+    fn as_ref(&self) -> ::protobuf::reflect::ProtobufValueRef {
+        ::protobuf::reflect::ProtobufValueRef::Message(self)
+    }
+}
+
+#[derive(PartialEq,Clone,Default)]
 pub struct CreateAccountRequest {
     // message fields
     pub req_id: u64,
     pub account_id: u32,
+    pub balance: i64,
     // special fields
     pub unknown_fields: ::protobuf::UnknownFields,
     pub cached_size: ::protobuf::CachedSize,
@@ -65,6 +306,21 @@ impl CreateAccountRequest {
     pub fn get_account_id(&self) -> u32 {
         self.account_id
     }
+
+    // sfixed64 balance = 3;
+
+    pub fn clear_balance(&mut self) {
+        self.balance = 0;
+    }
+
+    // Param is passed by value, moved
+    pub fn set_balance(&mut self, v: i64) {
+        self.balance = v;
+    }
+
+    pub fn get_balance(&self) -> i64 {
+        self.balance
+    }
 }
 
 impl ::protobuf::Message for CreateAccountRequest {
@@ -90,6 +346,13 @@ impl ::protobuf::Message for CreateAccountRequest {
                     let tmp = is.read_fixed32()?;
                     self.account_id = tmp;
                 },
+                3 => {
+                    if wire_type != ::protobuf::wire_format::WireTypeFixed64 {
+                        return ::std::result::Result::Err(::protobuf::rt::unexpected_wire_type(wire_type));
+                    }
+                    let tmp = is.read_sfixed64()?;
+                    self.balance = tmp;
+                },
                 _ => {
                     ::protobuf::rt::read_unknown_or_skip_group(field_number, wire_type, is, self.mut_unknown_fields())?;
                 },
@@ -108,6 +371,9 @@ impl ::protobuf::Message for CreateAccountRequest {
         if self.account_id != 0 {
             my_size += 5;
         }
+        if self.balance != 0 {
+            my_size += 9;
+        }
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
         self.cached_size.set(my_size);
         my_size
@@ -119,6 +385,9 @@ impl ::protobuf::Message for CreateAccountRequest {
         }
         if self.account_id != 0 {
             os.write_fixed32(2, self.account_id)?;
+        }
+        if self.balance != 0 {
+            os.write_sfixed64(3, self.balance)?;
         }
         os.write_unknown_fields(self.get_unknown_fields())?;
         ::std::result::Result::Ok(())
@@ -172,6 +441,11 @@ impl ::protobuf::Message for CreateAccountRequest {
                     |m: &CreateAccountRequest| { &m.account_id },
                     |m: &mut CreateAccountRequest| { &mut m.account_id },
                 ));
+                fields.push(::protobuf::reflect::accessor::make_simple_field_accessor::<_, ::protobuf::types::ProtobufTypeSfixed64>(
+                    "balance",
+                    |m: &CreateAccountRequest| { &m.balance },
+                    |m: &mut CreateAccountRequest| { &mut m.balance },
+                ));
                 ::protobuf::reflect::MessageDescriptor::new::<CreateAccountRequest>(
                     "CreateAccountRequest",
                     fields,
@@ -196,6 +470,7 @@ impl ::protobuf::Clear for CreateAccountRequest {
     fn clear(&mut self) {
         self.clear_req_id();
         self.clear_account_id();
+        self.clear_balance();
         self.unknown_fields.clear();
     }
 }
@@ -1373,23 +1648,25 @@ impl ::protobuf::reflect::ProtobufValue for TransferResponse {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x10accounting.proto\x12\naccounting\":\n\x14CreateAccountRequest\x12\
-    \x0e\n\x06req_id\x18\x01\x20\x01(\x06\x12\x12\n\naccount_id\x18\x02\x20\
-    \x01(\x07\";\n\x15CreateAccountResponse\x12\x0e\n\x06req_id\x18\x01\x20\
-    \x01(\x06\x12\x12\n\naccount_id\x18\x02\x20\x01(\x07\"7\n\x11GetBalanceR\
-    equest\x12\x0e\n\x06req_id\x18\x01\x20\x01(\x06\x12\x12\n\naccount_id\
-    \x18\x02\x20\x01(\x07\"I\n\x12GetBalanceResponse\x12\x0e\n\x06req_id\x18\
-    \x01\x20\x01(\x06\x12\x12\n\naccount_id\x18\x02\x20\x01(\x07\x12\x0f\n\
-    \x07balance\x18\x03\x20\x01(\x10\"<\n\x11TransferComponent\x12\x12\n\nac\
-    count_id\x18\x01\x20\x01(\x07\x12\x13\n\x0bmoney_delta\x18\x02\x20\x01(\
-    \x10\"T\n\x0fTransferRequest\x12\x0e\n\x06req_id\x18\x01\x20\x01(\x06\
-    \x121\n\ncomponents\x18\x02\x20\x03(\x0b2\x1d.accounting.TransferCompone\
-    nt\"\"\n\x10TransferResponse\x12\x0e\n\x06req_id\x18\x01\x20\x01(\x062\
-    \xfd\x01\n\x11AccountingService\x12T\n\rCreateAccount\x12\x20.accounting\
-    .CreateAccountRequest\x1a!.accounting.CreateAccountResponse\x12K\n\nGetB\
-    alance\x12\x1d.accounting.GetBalanceRequest\x1a\x1e.accounting.GetBalanc\
-    eResponse\x12E\n\x08Transfer\x12\x1b.accounting.TransferRequest\x1a\x1c.\
-    accounting.TransferResponseb\x06proto3\
+    \n\x10accounting.proto\x12\naccounting\"\x0e\n\x0cResetRequest\"\x0f\n\r\
+    ResetResponse\"K\n\x14CreateAccountRequest\x12\x0e\n\x06req_id\x18\x01\
+    \x20\x01(\x06\x12\x12\n\naccount_id\x18\x02\x20\x01(\x07\x12\x0f\n\x07ba\
+    lance\x18\x03\x20\x01(\x10\";\n\x15CreateAccountResponse\x12\x0e\n\x06re\
+    q_id\x18\x01\x20\x01(\x06\x12\x12\n\naccount_id\x18\x02\x20\x01(\x07\"7\
+    \n\x11GetBalanceRequest\x12\x0e\n\x06req_id\x18\x01\x20\x01(\x06\x12\x12\
+    \n\naccount_id\x18\x02\x20\x01(\x07\"I\n\x12GetBalanceResponse\x12\x0e\n\
+    \x06req_id\x18\x01\x20\x01(\x06\x12\x12\n\naccount_id\x18\x02\x20\x01(\
+    \x07\x12\x0f\n\x07balance\x18\x03\x20\x01(\x10\"<\n\x11TransferComponent\
+    \x12\x12\n\naccount_id\x18\x01\x20\x01(\x07\x12\x13\n\x0bmoney_delta\x18\
+    \x02\x20\x01(\x10\"T\n\x0fTransferRequest\x12\x0e\n\x06req_id\x18\x01\
+    \x20\x01(\x06\x121\n\ncomponents\x18\x02\x20\x03(\x0b2\x1d.accounting.Tr\
+    ansferComponent\"\"\n\x10TransferResponse\x12\x0e\n\x06req_id\x18\x01\
+    \x20\x01(\x062\xbb\x02\n\x11AccountingService\x12T\n\rCreateAccount\x12\
+    \x20.accounting.CreateAccountRequest\x1a!.accounting.CreateAccountRespon\
+    se\x12K\n\nGetBalance\x12\x1d.accounting.GetBalanceRequest\x1a\x1e.accou\
+    nting.GetBalanceResponse\x12E\n\x08Transfer\x12\x1b.accounting.TransferR\
+    equest\x1a\x1c.accounting.TransferResponse\x12<\n\x05Reset\x12\x18.accou\
+    nting.ResetRequest\x1a\x19.accounting.ResetResponseb\x06proto3\
 ";
 
 static mut file_descriptor_proto_lazy: ::protobuf::lazy::Lazy<::protobuf::descriptor::FileDescriptorProto> = ::protobuf::lazy::Lazy {

@@ -7,15 +7,16 @@ use grpcio::{RpcContext, RpcStatus, RpcStatusCode, UnarySink};
 use crate::proto::accounting::TransferComponent;
 use crate::proto::accounting::{
     CreateAccountRequest, CreateAccountResponse, GetBalanceRequest, GetBalanceResponse,
-    TransferRequest, TransferResponse,
+    TransferRequest, TransferResponse, ResetRequest, ResetResponse,
 };
 use crate::proto::accounting_grpc::AccountingService;
 
 pub trait DataStore {
-    fn create_account(&mut self, account: u32, req_id: u64) -> Result<u64, ()>;
+    fn create_account(&mut self, account: u32, req_id: u64, balance: i64) -> Result<u64, ()>;
     fn get_account_balance(&mut self, account: i64) -> Result<i64, ()>;
     fn execute_transfers(&mut self, transfers: &[TransferComponent], req_id: i64)
         -> Result<(), ()>;
+    fn reset(&mut self) -> Result<(), ()>;
 }
 
 #[derive(Clone)]
@@ -60,11 +61,12 @@ where
     ) {
         let req_id = req.get_req_id();
         let account_id = req.get_account_id();
+        let balance = req.get_balance();
         let mut reply = CreateAccountResponse::new();
         reply.set_req_id(req_id);
         reply.set_account_id(account_id);
 
-        match self.store.create_account(account_id, req_id) {
+        match self.store.create_account(account_id, req_id, balance) {
             Ok(_) => {
                 let f = sink
                     .success(reply)
@@ -147,5 +149,28 @@ where
                 ),
             }
         }
+    }
+
+    fn reset(
+        &mut self,
+        ctx: RpcContext,
+        req: ResetRequest,
+        sink: UnarySink<ResetResponse>,
+    ) {
+        match self.store.reset() {
+            Ok(_) => {
+                let reply = ResetResponse::new();
+                let f = sink
+                    .success(reply)
+                    .map_err(move |e| println!("failed to reply {:?}: {:?}", req, e));
+                ctx.spawn(f);
+            },
+            _ => self.send_error(
+                sink,
+                ctx,
+                RpcStatusCode::Unknown,
+                "Reset Failed",
+            ),
+        };
     }
 }

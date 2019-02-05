@@ -39,6 +39,13 @@ const METHOD_ACCOUNTING_SERVICE_TRANSFER: ::grpcio::Method<super::accounting::Tr
     resp_mar: ::grpcio::Marshaller { ser: ::grpcio::pb_ser, de: ::grpcio::pb_de },
 };
 
+const METHOD_ACCOUNTING_SERVICE_RESET: ::grpcio::Method<super::accounting::ResetRequest, super::accounting::ResetResponse> = ::grpcio::Method {
+    ty: ::grpcio::MethodType::Unary,
+    name: "/accounting.AccountingService/Reset",
+    req_mar: ::grpcio::Marshaller { ser: ::grpcio::pb_ser, de: ::grpcio::pb_de },
+    resp_mar: ::grpcio::Marshaller { ser: ::grpcio::pb_ser, de: ::grpcio::pb_de },
+};
+
 #[derive(Clone)]
 pub struct AccountingServiceClient {
     client: ::grpcio::Client,
@@ -98,6 +105,22 @@ impl AccountingServiceClient {
     pub fn transfer_async(&self, req: &super::accounting::TransferRequest) -> ::grpcio::Result<::grpcio::ClientUnaryReceiver<super::accounting::TransferResponse>> {
         self.transfer_async_opt(req, ::grpcio::CallOption::default())
     }
+
+    pub fn reset_opt(&self, req: &super::accounting::ResetRequest, opt: ::grpcio::CallOption) -> ::grpcio::Result<super::accounting::ResetResponse> {
+        self.client.unary_call(&METHOD_ACCOUNTING_SERVICE_RESET, req, opt)
+    }
+
+    pub fn reset(&self, req: &super::accounting::ResetRequest) -> ::grpcio::Result<super::accounting::ResetResponse> {
+        self.reset_opt(req, ::grpcio::CallOption::default())
+    }
+
+    pub fn reset_async_opt(&self, req: &super::accounting::ResetRequest, opt: ::grpcio::CallOption) -> ::grpcio::Result<::grpcio::ClientUnaryReceiver<super::accounting::ResetResponse>> {
+        self.client.unary_call_async(&METHOD_ACCOUNTING_SERVICE_RESET, req, opt)
+    }
+
+    pub fn reset_async(&self, req: &super::accounting::ResetRequest) -> ::grpcio::Result<::grpcio::ClientUnaryReceiver<super::accounting::ResetResponse>> {
+        self.reset_async_opt(req, ::grpcio::CallOption::default())
+    }
     pub fn spawn<F>(&self, f: F) where F: ::futures::Future<Item = (), Error = ()> + Send + 'static {
         self.client.spawn(f)
     }
@@ -107,6 +130,7 @@ pub trait AccountingService {
     fn create_account(&mut self, ctx: ::grpcio::RpcContext, req: super::accounting::CreateAccountRequest, sink: ::grpcio::UnarySink<super::accounting::CreateAccountResponse>);
     fn get_balance(&mut self, ctx: ::grpcio::RpcContext, req: super::accounting::GetBalanceRequest, sink: ::grpcio::UnarySink<super::accounting::GetBalanceResponse>);
     fn transfer(&mut self, ctx: ::grpcio::RpcContext, req: super::accounting::TransferRequest, sink: ::grpcio::UnarySink<super::accounting::TransferResponse>);
+    fn reset(&mut self, ctx: ::grpcio::RpcContext, req: super::accounting::ResetRequest, sink: ::grpcio::UnarySink<super::accounting::ResetResponse>);
 }
 
 pub fn create_accounting_service<S: AccountingService + Send + Clone + 'static>(s: S) -> ::grpcio::Service {
@@ -122,6 +146,10 @@ pub fn create_accounting_service<S: AccountingService + Send + Clone + 'static>(
     let mut instance = s.clone();
     builder = builder.add_unary_handler(&METHOD_ACCOUNTING_SERVICE_TRANSFER, move |ctx, req, resp| {
         instance.transfer(ctx, req, resp)
+    });
+    let mut instance = s.clone();
+    builder = builder.add_unary_handler(&METHOD_ACCOUNTING_SERVICE_RESET, move |ctx, req, resp| {
+        instance.reset(ctx, req, resp)
     });
     builder.build()
 }

@@ -11,6 +11,7 @@ GRANT ALL ON TABLE accounts TO accountant;
 DROP TABLE transactions;
 CREATE TABLE transactions (
     id INT PRIMARY KEY DEFAULT unique_rowid(),
+    transaction_index INT4,
     req_id BIGINT,
     account_id INT4,
     amount INT,
