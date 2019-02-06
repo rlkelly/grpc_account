@@ -15,7 +15,7 @@
 
 ## QUICKSTART:
 ```bash
-$ brew install cockroachdb
+$ brew install cockroach
 $ cockroach start --insecure --listen-addr=localhost
 $ cockroach sql --insecure < sql/database.sql
 $ cargo run server
