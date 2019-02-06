@@ -17,7 +17,7 @@
 ```bash
 $ brew install cockroach
 $ cockroach start --insecure --listen-addr=localhost
-$ cockroach sql --insecure < sql/database.sql
+$ cockroach sql --insecure < src/sql/database.sql
 $ cargo run --bin server
 ```
 
