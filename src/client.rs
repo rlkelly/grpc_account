@@ -103,7 +103,7 @@ mod tests {
 
         let pool = ThreadPool::new(20);
         let barrier = Arc::new(Barrier::new(20));
-        for i in 1..20 {
+        for i in 0..20 {
             let barrier = barrier.clone();
             let mut client = client.clone();
             pool.execute(move || {
@@ -116,7 +116,8 @@ mod tests {
         }
         barrier.wait();
 
-        for account in 100..2000 {
+        // validate balance for each account
+        for account in 0..2000 {
             let reply = client.get_balance(account);
             assert!(reply.is_ok());
             assert_eq!(reply.unwrap().get_balance(), 1_000);
@@ -191,13 +192,16 @@ mod tests {
             assert!(reply.is_ok());
         });
 
-        let reply = client.get_balance(1).expect("failed to get balance for large donor");
-        assert_eq!(reply.get_balance(), 4_000);
+        let reply = client.get_balance(1);
+        assert!(reply.is_ok());
+        assert_eq!(reply.unwrap().get_balance(), 4_000);
 
-        let reply = client.get_balance(2).expect("failed to get balance for large donor");
-        assert_eq!(reply.get_balance(), 500);
+        let reply = client.get_balance(2);
+        assert!(reply.is_ok());
+        assert_eq!(reply.unwrap().get_balance(), 500);
 
-        let reply = client.get_balance(3).expect("failed to get balance for large donor");
-        assert_eq!(reply.get_balance(), 500);
+        let reply = client.get_balance(3);
+        assert!(reply.is_ok());
+        assert_eq!(reply.unwrap().get_balance(), 500);
     }
 }
